@@ -169,7 +169,7 @@ class detect_face_fake():
                 response = self.api.UpdateHistoryCheckTimekeep(list_data_post)
                 if response == True:
                     print("nhan dang thanh cong, da gui len server")
-        return True
+        return True, list_data_post
 
     def __del__(self):
         print('Destructor called, Employee deleted.') 

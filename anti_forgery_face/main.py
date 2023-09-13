@@ -3,7 +3,13 @@ import json
 import threading
 import cv2
 import time
+import os
 from help.ApiCMS import detect_face_fake
+from datetime import date, datetime
+
+
+
+
 
 HOST = "0.0.0.0"  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
@@ -15,7 +21,13 @@ detect_status = False
 
 def run_data_json(data_json):
     detect = detect_face_fake(model_dir = "model/phone_9_9.pt")
-    detect.run(data_json)
+    data_time = datetime.now()
+    ret, data_detect = detect.run(data_json)
+    if ret == True:
+        today = date.today()
+        with open("log/" + str(today) + ".txt", 'a') as wf:
+            wf.write(str(data_time) + '\n')
+            wf.write(str(data_detect) + '\n' + '\n')
 
 def thread_function():
     global detect_status
