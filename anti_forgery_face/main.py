@@ -7,9 +7,7 @@ import os
 from help.ApiCMS import detect_face_fake
 from datetime import date, datetime
 
-
-
-
+detect = detect_face_fake(model_phone= "model/phone_9_9.pt", model_face="model/yolov8n-face.pt")
 
 HOST = "0.0.0.0"  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
@@ -20,27 +18,32 @@ list_data_read = []
 detect_status = False
 
 def run_data_json(data_json):
-    detect = detect_face_fake(model_dir = "model/phone_9_9.pt")
+    
     data_time = datetime.now()
     ret, data_detect = detect.run(data_json)
     if ret == True:
         today = date.today()
         with open("log/" + str(today) + ".txt", 'a') as wf:
             wf.write(str(data_time) + '\n')
-            wf.write(str(data_detect) + '\n' + '\n')
+            for data in data_detect:
+                wf.write(str(data) + '\n' + '\n')
+            wf.write('\n')
 
 def thread_function():
     global detect_status
-    while(1):
-        if detect_status == True:
-            print("start")
-            while len(list_data_read):
-                print("list_data_read",list_data_read)
-                print("len:",len(list_data_read))
-                run_data_json(list_data_read[0])
-                list_data_read.pop(0)
-            detect_status = False
-            print("end")
+    try:
+        while(1):
+            if detect_status == True:
+                print("start")
+                while len(list_data_read):
+                    print("list_data_read",list_data_read)
+                    print("len:",len(list_data_read))
+                    run_data_json(list_data_read[0])
+                    list_data_read.pop(0)
+                detect_status = False
+                print("end")
+    except:
+        pass
 
 def process_data_json(data_rec, conn):
     global detect_status

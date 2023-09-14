@@ -9,7 +9,9 @@ import os
 from help.my_yolo import YoloV8
 from help.draw import plot
 
-class ApiCMS():
+class ApiCMS:
+    # url = "http://192.168.1.205:8001/api/account/"
+
     url = "http://192.168.1.205/stech/snvp/dashboard/public/api/account/"
 
     TIMEOUT = 3
@@ -90,10 +92,10 @@ class ApiCMS():
         except:
             return False
 
-class detect_face_fake():
-    def __init__(self, model_dir = "yolov8n.pt"):
-        self.yolo_detect_phone = YoloV8(model= model_dir)
-        self.yolo_detect_face = YoloV8(model= "model/yolov8n-face.pt")
+class detect_face_fake:
+    def __init__(self, model_phone = "", model_face = ""):
+        self.yolo_detect_phone = YoloV8(model= model_phone)
+        self.yolo_detect_face = YoloV8(model= model_face)
         self.api = ApiCMS()
         self.data_post ={
             "id": 46812,
@@ -135,36 +137,42 @@ class detect_face_fake():
             return "unknow", "unknow", "unknow"
 
     def run(self, data_received):
-        
+        list_data_post = []
         if data_received["search_time"]:
             response = self.api.GetHistoryCheckTimekeep(type_time = data_received["search_time"], search_from = data_received["search_from"], search_to = data_received["search_to"])
             if response != None:
                 # print(response)
-                list_data_post = []
                 for i in range(0, len(response)):
-                    if response[i]['link_image']:
-                        print(i+1, response[i]['link_image'])
-                        image = self.url_to_image(response[i]['link_image'])
-
-                        image, name, threshold = self.detect_image(image)
-                        # name = "phone"
-                        # threshold = 0.5
+                    print(response[i])
+                    if response[i]['link_image'] != "":
                         list_buffer = {}
                         list_buffer = self.data_post
-                        list_buffer['id'] = response[i]['id']
-                        if name == "phone":
-                            list_buffer['threshold_fake'] = threshold
-                            # if os.path.isdir("phone") == False:
-                            #     os.mkdir("phone")
-                            # cv2.imwrite("phone/"+ str(response[i]['id']) +".jpg", image)
-                        else:
-                            # if os.path.isdir("unknow") == False:
-                            #     os.mkdir("unknow")
-                            # cv2.imwrite("unknow/"+ str(response[i]['id']) +".jpg", image)
-                            list_buffer['threshold_fake'] = 0
-                        # print(list_buffer)
-                        list_data_post.append(json.loads(json.dumps(list_buffer)))
 
+                        try:
+                            # print(i+1, response[i]['link_image'])
+                            image = self.url_to_image(response[i]['link_image'])
+
+                            image, name, threshold = self.detect_image(image)
+                            # name = "phone"
+                            # threshold = 0.5
+                        
+                            list_buffer['id'] = response[i]['id']
+                            if name == "phone":
+                                list_buffer['threshold_fake'] = threshold
+                                # if os.path.isdir("phone") == False:
+                                #     os.mkdir("phone")
+                                # cv2.imwrite("phone/"+ str(response[i]['id']) +".jpg", image)
+                            else:
+                                # if os.path.isdir("unknow") == False:
+                                #     os.mkdir("unknow")
+                                # cv2.imwrite("unknow/"+ str(response[i]['id']) +".jpg", image)
+                                list_buffer['threshold_fake'] = 0
+                            # print(list_buffer)
+                            list_data_post.append(json.loads(json.dumps(list_buffer)))
+                        except:
+                            list_buffer['id'] = response[i]['id']
+                            list_buffer['threshold_fake'] = 0
+                            list_data_post.append(json.loads(json.dumps(list_buffer)))
                 print(list_data_post)
                 response = self.api.UpdateHistoryCheckTimekeep(list_data_post)
                 if response == True:
@@ -172,12 +180,12 @@ class detect_face_fake():
         return True, list_data_post
 
     def __del__(self):
+        del self.yolo_detect_phone
+        del self.yolo_detect_face
         print('Destructor called, Employee deleted.') 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 if __name__ == '__main__':
-    # detect_face_fake(type_time_d= "today")
+    # detect_face_fake()
     pass
     
-
-
